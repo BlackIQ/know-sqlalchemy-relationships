@@ -1,34 +1,44 @@
+# SQLAlchemy & SQLAlchemy ORM
 from sqlalchemy import ForeignKey, create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker, relationship, Mapped, mapped_column
 
-import config
+# Settings
+from settings import config
 
-
+# Engine
 engine = create_engine(config.POSTGRES_1N)
 
+
+# Base Model
 class Base(DeclarativeBase):
     pass
 
+
+# Session & Session Maker
 Session = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 session = Session()
 
+
+# Table: Person
 class Person(Base):
     __tablename__ = "people"
-    
+
     id: Mapped[int] = mapped_column(
         primary_key=True, index=True
     )
     name: Mapped[str] = mapped_column(
         nullable=False
     )
-    
+
     things: Mapped[list["Thing"]] = relationship(
         "Thing", back_populates='person'
     )
-    
+
+
+# Table: Thing
 class Thing(Base):
     __tablename__ = "things"
-    
+
     id: Mapped[int] = mapped_column(
         primary_key=True, index=True
     )
@@ -38,15 +48,16 @@ class Thing(Base):
     person_id: Mapped[int] = mapped_column(
         ForeignKey("people.id")
     )
-    
+
     person: Mapped["Person"] = relationship(
         "Person", back_populates='things'
     )
 
+
+# Create tables
 Base.metadata.create_all(engine)
 
-
-# Insert
+# ---------- INSERT ---------- #
 
 amir = Person(name="Amirhossein")
 
@@ -67,19 +78,19 @@ sina.things.append(car)
 session.add(sina)
 session.commit()
 
-# Select
+# ---------- SELECT ---------- #
 
 people = session.query(Person).all()
 
 for prsn in people:
     print(f"Name: {prsn.name}")
     for thng in prsn.things:
-        print(f"Thing name: {thng.name}")   
-        
+        print(f"Thing name: {thng.name}")
+
     print("")
-    
-print("")
-    
+
+print("------------------------------------------------------")
+
 thngs = session.query(Thing).all()
 
 for thng in thngs:
